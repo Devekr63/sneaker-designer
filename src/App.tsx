@@ -284,7 +284,10 @@ export default function App() {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement
       const typing = target.tagName === 'INPUT' && ['text', 'search'].includes((target as HTMLInputElement).type)
+      // Any focused form control (checkbox, slider, select…) owns Backspace/Delete/Enter.
+      const inControl = typing || ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'].includes(target.tagName)
       if (drawing) {
+        if (typing) return
         if (e.key === 'Enter') finishDrawing()
         if (e.key === 'Escape') setDrawing(null)
         if (e.key === 'Backspace') setDrawing(drawing.slice(0, -1))
@@ -292,7 +295,7 @@ export default function App() {
       }
       if (typing || libraryOpen) return
       if (e.key === 'Escape') setSelected(null)
-      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedCustom) {
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedCustom && !inControl) {
         e.preventDefault()
         deleteCustom(selectedCustom.id)
       }
