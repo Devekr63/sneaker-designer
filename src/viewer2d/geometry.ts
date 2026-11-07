@@ -601,7 +601,8 @@ export function applyHandle(geo: Geometry, id: HandleId, p: Pt): ShapeParams {
       break
     }
     case 'midsoleHeel':
-      s.midsoleHeel = hAbs - s.outsole
+      // The handle sits at u = 0.92, where the heel rocker lifts the sole; take that lift back out.
+      s.midsoleHeel = hAbs - s.outsole - geo.soleBottom(0.92)
       break
   }
   return clampShape(s)

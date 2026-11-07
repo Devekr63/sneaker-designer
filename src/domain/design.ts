@@ -1,5 +1,5 @@
 import { DEFAULT_SHAPE, parseShape } from './shape'
-import type { CustomPart, Design, MaterialId, PartPoint, Parts, ShapeParams } from './types'
+import type { CustomPart, Design, MaterialId, PartPoint, Parts, PartStyle, ShapeParams } from './types'
 
 export const DEFAULT_PARTS: Parts = {
   toe_box: { color: '#E9E7E1', material: 'suede' },
@@ -82,7 +82,17 @@ export function parseDesign(raw: unknown): Design | null {
   for (const key of Object.keys(parts) as (keyof Parts)[]) {
     const p = (r.parts as Partial<Parts>)[key]
     if (p && typeof p.color === 'string' && HEX.test(p.color)) {
-      parts[key] = { ...parts[key], ...p, material: MATERIALS.includes(p.material) ? p.material : parts[key].material }
+      // Copy only known fields with the right types; anything else (e.g. an object as `text`) would crash rendering.
+      const next: PartStyle = {
+        ...parts[key],
+        color: p.color,
+        material: MATERIALS.includes(p.material) ? p.material : parts[key].material,
+      }
+      if (typeof p.text === 'string') next.text = p.text.slice(0, 10)
+      for (const flag of ['speckle', 'translucent', 'hidden', 'stitch'] as const) {
+        if (flag in p) next[flag] = !!p[flag]
+      }
+      parts[key] = next
     }
   }
   const now = new Date().toISOString()
